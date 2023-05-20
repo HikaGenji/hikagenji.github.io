@@ -1,52 +1,57 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Matplotlib</title>
-    <meta charset="utf-8">
-    <link rel="icon" type="image/x-icon" href="./favicon.png">
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    <py-config>
-packages = [
-  "matplotlib"
-]
-    </py-config>
-    </head>
-    <body>
-      <div id="mpl"></div>
-      <py-script output="mpl">
-import matplotlib.pyplot as plt
-import matplotlib.tri as tri
-import numpy as np
+<head>
+  <title>100m Dash Game</title>
+  <style>
+    #player {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>100m Dash Game</h1>
+  <p>Press 'A' and 'D' alternatively to run as fast as you can!</p>
+  <div id="player"></div>
 
-# First create the x and y coordinates of the points.
-n_angles = 36
-n_radii = 8
-min_radius = 0.25
-radii = np.linspace(min_radius, 0.95, n_radii)
+  <script>
+    var player = document.getElementById("player");
+    var keyA = false;
+    var keyD = false;
+    var position = 0;
 
-angles = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
-angles = np.repeat(angles[..., np.newaxis], n_radii, axis=1)
-angles[:, 1::2] += np.pi / n_angles
+    function handleKeyDown(event) {
+      if (event.key === 'a') {
+        keyA = true;
+      }
+      if (event.key === 'd') {
+        keyD = true;
+      }
 
-x = (radii * np.cos(angles)).flatten()
-y = (radii * np.sin(angles)).flatten()
-z = (np.cos(radii) * np.cos(3 * angles)).flatten()
+      if (keyA && keyD) {
+        position += 10;
+        player.style.left = position + "px";
+        keyA = false;
+        keyD = false;
+      }
+    }
 
-# Create the Triangulation; no triangles so Delaunay triangulation created.
-triang = tri.Triangulation(x, y)
+    function handleKeyUp(event) {
+      if (event.key === 'a') {
+        keyA = false;
+      }
+      if (event.key === 'd') {
+        keyD = false;
+      }
+    }
 
-# Mask off unwanted triangles.
-triang.set_mask(np.hypot(x[triang.triangles].mean(axis=1),
-                         y[triang.triangles].mean(axis=1))
-                < min_radius)
-
-fig1, ax1 = plt.subplots()
-ax1.set_aspect('equal')
-tpc = ax1.tripcolor(triang, z, shading='flat')
-fig1.colorbar(tpc)
-ax1.set_title('tripcolor of Delaunay triangulation, flat shading')
-
-fig1
-      </py-script>
-    </body>
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+  </script>
+</body>
 </html>
+
