@@ -44,14 +44,23 @@
 
         <section class="pyscript">
             Hello world! <br />
-            This is the current date and time, as computed by Python:
+            we define a function f as 
             <script type="py">
                 from pyscript import display
                 import statistics
                 def f(l):
-                  return [statistics.median(l)]
+                  return {'median': statistics.median(l), 'range': l.max()-l.min()}
                 x = [2, 2, 2, 3, 3, 5, 5, 6, 6, 6, 7, 7]
+                display("x=")
+                display(x)
+                display("f(x + [2])=")
+                display(f(x + [2]))
+                display("f(x + [5])=")
                 display(f(x + [5]))
+                display("f(x + [6])=")
+                display(f(x + [6]))
+                display("f(x + [7])=")
+                display(f(x + [7]))
             </script>
         </section>
     </body>
