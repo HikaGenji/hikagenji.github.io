@@ -43,13 +43,14 @@
         </nav>
 
         <section class="pyscript">
-            Hello world! <br />
-            we define a function f as 
+            we define a function f as <br />
+            def f(l):
+                  return {'median': statistics.median(l), 'range': l.max()-l.min()}
             <script type="py">
                 from pyscript import display
                 import statistics
                 def f(l):
-                  return {'median': statistics.median(l), 'range': l.max()-l.min()}
+                  return {'median': statistics.median(l), 'range': max(l)-min(l)}
                 x = [2, 2, 2, 3, 3, 5, 5, 6, 6, 6, 7, 7]
                 display("x=")
                 display(x)
