@@ -3,188 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>100m Dash Game</title>
+    <title>Jungle Platform Game with Birds</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
         }
-        #gameArea {
-            width: 300px;
-            height: 100px;
-            background-color: #ccc;
-            position: relative;
-            overflow: hidden;
-        }
-        #player {
-            width: 20px;
-            height: 20px;
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-        }
-        .body {
-            width: 100%;
-            height: 100%;
-            background-color: blue;
-            border-radius: 50%;
-            position: absolute;
-        }
-        .leg {
-            width: 2px;
-            height: 10px;
-            background-color: black;
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform-origin: top;
-        }
-        #leftLeg {
-            transform: rotate(30deg);
-        }
-        #rightLeg {
-            transform: rotate(-30deg);
-        }
-        #finishLine {
-            width: 2px;
-            height: 100%;
-            background-color: red;
-            position: absolute;
-            right: 0;
-        }
-        #timer {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 18px;
-        }
-        #startButton {
-            margin-top: 20px;
+        #restartButton {
+            display: none;
+            margin: 10px auto;
             padding: 10px 20px;
             font-size: 16px;
-            cursor: pointer;
-        }
-        #popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-        #popup h2 {
-            margin-top: 0;
-        }
-        #closePopup {
-            margin-top: 10px;
-            padding: 5px 10px;
-            font-size: 14px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div>
-        <div id="gameArea">
-            <div id="player">
-                <div class="body"></div>
-                <div id="leftLeg" class="leg"></div>
-                <div id="rightLeg" class="leg"></div>
-            </div>
-            <div id="finishLine"></div>
-            <div id="timer">Time: 0.00s</div>
-        </div>
-        <button id="startButton">Start Game</button>
-    </div>
-    <div id="popup">
-        <h2>Finish!</h2>
-        <p id="finalTime"></p>
-        <button id="closePopup">Close</button>
-    </div>
-
+    <canvas id="gameCanvas"></canvas>
+    <button id="restartButton">Restart Game</button>
     <script>
-        const gameArea = document.getElementById('gameArea');
-        const player = document.getElementById('player');
-        const leftLeg = document.getElementById('leftLeg');
-        const rightLeg = document.getElementById('rightLeg');
-        const timer = document.getElementById('timer');
-        const startButton = document.getElementById('startButton');
-        const popup = document.getElementById('popup');
-        const finalTimeDisplay = document.getElementById('finalTime');
-        const closePopupButton = document.getElementById('closePopup');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        let distance = 0;
-        let startTime;
-        let isRunning = false;
-        const finishDistance = 280; // Adjust based on gameArea width and player size
-        let legAngle = 30;
-        let legDirection = 1;
+        canvas.width = 800;
+        canvas.height = 400;
 
-        function startGame() {
-            distance = 0;
-            player.style.left = '0px';
-            timer.textContent = 'Time: 0.00s';
-            isRunning = true;
-            startTime = Date.now();
-            startButton.disabled = true;
-            popup.style.display = 'none';
-        }
+        const player = {
+            x: 50,
+            y: canvas.height - 30,
+            radius: 15,
+            jumping: false,
+            jumpHeight: 150,
+            jumpSpeed: 4,
+            jumpCounter: 0
+        };
 
-        function updatePosition() {
-            distance += 5; // Adjust for speed
-            if (distance > finishDistance) {
-                distance = finishDistance;
-                endGame();
+        let obstacles = [];
+        let birds = [];
+        let score = 0;
+        let obstaclesJumped = 0;
+        let gameOver = false;
+        let lastObstacleTime = 0;
+        let backgroundX = 0;
+
+        // Create jungle background
+        const jungleBackground = new Image();
+        jungleBackground.src = 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+            <rect width="100%" height="100%" fill="#87CEEB"/>
+            <g fill="#228B22">
+                <rect x="0" y="300" width="800" height="100"/>
+                <path d="M0,300 Q200,200 400,300 T800,300 V400 H0 Z"/>
+            </g>
+            <g fill="#006400">
+                <circle cx="100" cy="250" r="50"/>
+                <circle cx="300" cy="220" r="70"/>
+                <circle cx="500" cy="240" r="60"/>
+                <circle cx="700" cy="230" r="80"/>
+            </g>
+            <g fill="#228B22">
+                <circle cx="200" cy="260" r="40"/>
+                <circle cx="400" cy="250" r="50"/>
+                <circle cx="600" cy="270" r="45"/>
+            </g>
+        </svg>
+        `);
+
+        function drawBackground() {
+            ctx.drawImage(jungleBackground, backgroundX, 0);
+            ctx.drawImage(jungleBackground, backgroundX + canvas.width, 0);
+            backgroundX -= 1;
+            if (backgroundX <= -canvas.width) {
+                backgroundX = 0;
             }
-            player.style.left = distance + 'px';
-            animateLegs();
         }
 
-        function animateLegs() {
-            legAngle += 15 * legDirection;
-            if (legAngle > 30 || legAngle < -30) {
-                legDirection *= -1;
+        function drawPlayer() {
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawObstacle(obstacle) {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        }
+
+        function createObstacle() {
+            const height = Math.random() * 40 + 20;
+            const width = Math.random() * 20 + 10;
+            obstacles.push({
+                x: canvas.width,
+                y: canvas.height - height,
+                width: width,
+                height: height,
+                passed: false
+            });
+            lastObstacleTime = Date.now();
+        }
+
+        function createBird() {
+            const y = Math.random() * (canvas.height / 2);
+            birds.push({
+                x: canvas.width,
+                y: y,
+                speed: Math.random() * 2 + 1
+            });
+        }
+
+        function drawBird(bird) {
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.moveTo(bird.x, bird.y);
+            ctx.lineTo(bird.x - 10, bird.y + 5);
+            ctx.lineTo(bird.x - 5, bird.y + 10);
+            ctx.lineTo(bird.x + 5, bird.y + 10);
+            ctx.lineTo(bird.x + 10, bird.y + 5);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function jump() {
+            if (!player.jumping && !gameOver) {
+                player.jumping = true;
+                player.jumpCounter = 0;
             }
-            leftLeg.style.transform = `rotate(${legAngle}deg)`;
-            rightLeg.style.transform = `rotate(${-legAngle}deg)`;
         }
 
-        function updateTimer() {
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            timer.textContent = `Time: ${elapsedTime.toFixed(2)}s`;
-        }
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function endGame() {
-            isRunning = false;
-            startButton.disabled = false;
-            const finalTime = ((Date.now() - startTime) / 1000).toFixed(2);
-            finalTimeDisplay.textContent = `Your time: ${finalTime}s`;
-            popup.style.display = 'block';
-        }
+            drawBackground();
 
-        gameArea.addEventListener('click', () => {
-            if (isRunning) {
-                updatePosition();
-                updateTimer();
+            if (player.jumping) {
+                player.jumpCounter += player.jumpSpeed;
+                player.y = canvas.height - 30 - player.jumpHeight * Math.sin(player.jumpCounter * Math.PI / 180);
+                
+                if (player.jumpCounter >= 180) {
+                    player.jumping = false;
+                    player.y = canvas.height - 30;
+                }
             }
+
+            drawPlayer();
+
+            if (Date.now() - lastObstacleTime > 1500 && Math.random() < 0.02) {
+                createObstacle();
+            }
+
+            for (let i = 0; i < obstacles.length; i++) {
+                obstacles[i].x -= 3;
+                drawObstacle(obstacles[i]);
+
+                if (obstacles[i].x + obstacles[i].width < 0) {
+                    obstacles.splice(i, 1);
+                    i--;
+                    score++;
+                    continue;
+                }
+
+                if (!obstacles[i].passed && obstacles[i].x + obstacles[i].width < player.x - player.radius) {
+                    obstacles[i].passed = true;
+                    obstaclesJumped++;
+                }
+
+                if (
+                    player.x + player.radius > obstacles[i].x &&
+                    player.x - player.radius < obstacles[i].x + obstacles[i].width &&
+                    player.y + player.radius > obstacles[i].y
+                ) {
+                    gameOver = true;
+                }
+            }
+
+            // Handle birds
+            if (Math.random() < 0.005) {
+                createBird();
+            }
+
+            for (let i = 0; i < birds.length; i++) {
+                birds[i].x -= birds[i].speed;
+                drawBird(birds[i]);
+
+                if (birds[i].x + 10 < 0) {
+                    birds.splice(i, 1);
+                    i--;
+                }
+            }
+
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Score: ${score}`, 10, 30);
+            ctx.fillText(`Obstacles Jumped: ${obstaclesJumped}`, 10, 60);
+
+            if (gameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = 'white';
+                ctx.font = '40px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('Game Over', 20, canvas.height / 2 - 40);
+                
+                ctx.font = '30px Arial';
+                ctx.fillText(`Final Score: ${score}`, 20, canvas.height / 2 + 10);
+                
+                if (score < 10) {
+                    ctx.fillText('You suck kharmae', 20, canvas.height / 2 + 50);
+                }
+
+                restartButton.style.display = 'block';
+            } else {
+                requestAnimationFrame(updateGame);
+            }
+        }
+
+        function restartGame() {
+            player.y = canvas.height - 30;
+            player.jumping = false;
+            obstacles = [];
+            birds = [];
+            score = 0;
+            obstaclesJumped = 0;
+            gameOver = false;
+            lastObstacleTime = 0;
+            backgroundX = 0;
+            restartButton.style.display = 'none';
+            updateGame();
+        }
+
+        canvas.addEventListener('click', jump);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
         });
+        restartButton.addEventListener('click', restartGame);
 
-        startButton.addEventListener('click', startGame);
-        closePopupButton.addEventListener('click', () => {
-            popup.style.display = 'none';
-        });
+        jungleBackground.onload = updateGame;
     </script>
 </body>
 </html>
