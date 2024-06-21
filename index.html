@@ -1,67 +1,11 @@
-<!doctype html>
+body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0; font-family: Arial, sans-serif; } #gameArea { width: 300px; height: 100px; background-color: #ccc; position: relative; overflow: hidden; } #player { width: 20px; height: 20px; position: absolute; bottom: 10px; left: 0; } .body { width: 100%; height: 100%; background-color: blue; border-radius: 50%; position: absolute; } .leg { width: 2px; height: 10px; background-color: black; position: absolute; bottom: -10px; left: 50%; transform-origin: top; } #leftLeg { transform: rotate(30deg); } #rightLeg { transform: rotate(-30deg); } #finishLine { width: 2px; height: 100%; background-color: red; position: absolute; right: 0; } #timer { position: absolute; top: 10px; left: 10px; font-size: 18px; } #startButton { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; } #popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; border: 2px solid #333; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1000; } #popup h2 { margin-top: 0; } #closePopup { margin-top: 10px; padding: 5px 10px; font-size: 14px; cursor: pointer; } 
 
-<html>
-    <head>
-        <!-- Recommended meta tags -->
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+Time: 0.00s
 
-        <!-- PyScript CSS -->
-        <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-        <!-- CSS for examples -->
-        <link rel="stylesheet" href="./assets/css/examples.css" />
+Start Game 
 
-        <!-- This script tag bootstraps PyScript -->
-        <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+Finish!
 
-        <!-- for splashscreen -->
-        <style>
-            #loading { outline: none; border: none; background: transparent }
-        </style>
-        <script type="module">
-            const loading = document.getElementById('loading');
-            addEventListener('py:ready', () => loading.close());
-            loading.showModal();
-        </script>
+Close 
 
-        <title>Use Python to verify math problem</title>
-        <link rel="icon" type="image/png" href="./assets/favicon.png" />
-    </head>
-
-    <body>
-        <dialog id="loading">
-            <h1>Loading...</h1>
-        </dialog>
-
-        <nav class="navbar" style="background-color: #000000">
-            <div class="app-header">
-                <a href="/">
-                    <img src="./assets/logo.png" class="logo" />
-                </a>
-                <a class="title" href="" style="color: #f0ab3c">Python sample usage in maths</a>
-            </div>
-        </nav>
-
-        <section class="pyscript">
-            we define a function f as <br />
-            f = lambda l: {'median': statistics.median(l), 'range': l.max()-l.min()}
-            <script type="py">
-                from pyscript import display
-                import statistics
-                def f(l):
-                  return {'median': statistics.median(l), 'range': max(l)-min(l)}
-                x = [2, 2, 2, 3, 3, 5, 5, 6, 6, 6, 7, 7]
-                display("x=")
-                display(x)
-                display("f(x + [2])=")
-                display(f(x + [2]))
-                display("f(x + [5])=")
-                display(f(x + [5]))
-                display("f(x + [6])=")
-                display(f(x + [6]))
-                display("f(x + [7])=")
-                display(f(x + [7]))
-            </script>
-        </section>
-    </body>
-</html>
+const gameArea = document.getElementById('gameArea'); const player = document.getElementById('player'); const leftLeg = document.getElementById('leftLeg'); const rightLeg = document.getElementById('rightLeg'); const timer = document.getElementById('timer'); const startButton = document.getElementById('startButton'); const popup = document.getElementById('popup'); const finalTimeDisplay = document.getElementById('finalTime'); const closePopupButton = document.getElementById('closePopup'); let distance = 0; let startTime; let isRunning = false; const finishDistance = 280; // Adjust based on gameArea width and player size let legAngle = 30; let legDirection = 1; function startGame() { distance = 0; player.style.left = '0px'; timer.textContent = 'Time: 0.00s'; isRunning = true; startTime = Date.now(); startButton.disabled = true; popup.style.display = 'none'; } function updatePosition() { distance += 5; // Adjust for speed if (distance > finishDistance) { distance = finishDistance; endGame(); } player.style.left = distance + 'px'; animateLegs(); } function animateLegs() { legAngle += 15 * legDirection; if (legAngle > 30 || legAngle < -30) { legDirection *= -1; } leftLeg.style.transform = `rotate(${legAngle}deg)`; rightLeg.style.transform = `rotate(${-legAngle}deg)`; } function updateTimer() { const elapsedTime = (Date.now() - startTime) / 1000; timer.textContent = `Time: ${elapsedTime.toFixed(2)}s`; } function endGame() { isRunning = false; startButton.disabled = false; const finalTime = ((Date.now() - startTime) / 1000).toFixed(2); finalTimeDisplay.textContent = `Your time: ${finalTime}s`; popup.style.display = 'block'; } gameArea.addEventListener('click', () => { if (isRunning) { updatePosition(); updateTimer(); } }); startButton.addEventListener('click', startGame); closePopupButton.addEventListener('click', () => { popup.style.display = 'none'; }); 
