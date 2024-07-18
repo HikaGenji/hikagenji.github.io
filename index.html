@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JFP Game Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .app-icon:hover {
+            transform: scale(1.05);
+        }
+        .app-icon img {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .app-name {
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>JFP Game Store</h1>
+    <div class="app-grid" id="appGrid"></div>
+
+    <script>
+        const apps = [
+            { 
+                name: 'Jenga', 
+                icon: `data:image/svg+xml,${encodeURIComponent(`
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <rect x="20" y="70" width="60" height="10" fill="#8B4513"/>
+                        <rect x="20" y="55" width="60" height="10" fill="#A0522D"/>
+                        <rect x="25" y="40" width="50" height="10" fill="#8B4513"/>
+                        <rect x="20" y="25" width="60" height="10" fill="#A0522D"/>
+                        <rect x="25" y="10" width="50" height="10" fill="#8B4513"/>
+                    </svg>
+                `)}`, 
+                link: 'jenga.html' 
+            },
+            { 
+                name: 'Shkoba', 
+                icon: `data:image/svg+xml,${encodeURIComponent(`
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <rect x="20" y="20" width="60" height="80" rx="5" ry="5" fill="#fff" stroke="#000" stroke-width="2"/>
+                        <rect x="25" y="25" width="50" height="70" rx="3" ry="3" fill="#f8f8f8" stroke="#ddd" stroke-width="1"/>
+                        <text x="50" y="65" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#ff0000">7♥</text>
+                    </svg>
+                `)}`, 
+                link: 'schkoba.html' 
+            },
+            { name: 'App 3', icon: '/api/placeholder/64/64', link: 'app3.html' },
+            // Add more apps here
+        ];
+
+        function createAppIcon(app) {
+            const appIcon = document.createElement('div');
+            appIcon.className = 'app-icon';
+            appIcon.innerHTML = `
+                <img src="${app.icon}" alt="${app.name} icon">
+                <span class="app-name">${app.name}</span>
+            `;
+            appIcon.addEventListener('click', () => {
+                window.location.href = app.link;
+            });
+            return appIcon;
+        }
+
+        function populateAppGrid() {
+            const appGrid = document.getElementById('appGrid');
+            apps.forEach(app => {
+                appGrid.appendChild(createAppIcon(app));
+            });
+        }
+
+        populateAppGrid();
+    </script>
+</body>
+</html>
