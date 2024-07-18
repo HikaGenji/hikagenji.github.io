@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My GitHub App Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .app-icon:hover {
+            transform: scale(1.05);
+        }
+        .app-icon img {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .app-name {
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>My GitHub App Store</h1>
+    <div class="app-grid" id="appGrid"></div>
+
+    <script>
+        const apps = [
+            { name: 'App 1', icon: '/api/placeholder/64/64', link: 'app1.html' },
+            { name: 'App 2', icon: '/api/placeholder/64/64', link: 'app2.html' },
+            { name: 'App 3', icon: '/api/placeholder/64/64', link: 'app3.html' },
+            // Add more apps here
+        ];
+
+        function createAppIcon(app) {
+            const appIcon = document.createElement('div');
+            appIcon.className = 'app-icon';
+            appIcon.innerHTML = `
+                <img src="${app.icon}" alt="${app.name} icon">
+                <span class="app-name">${app.name}</span>
+            `;
+            appIcon.addEventListener('click', () => {
+                window.location.href = app.link;
+            });
+            return appIcon;
+        }
+
+        function populateAppGrid() {
+            const appGrid = document.getElementById('appGrid');
+            apps.forEach(app => {
+                appGrid.appendChild(createAppIcon(app));
+            });
+        }
+
+        populateAppGrid();
+    </script>
+</body>
+</html>
