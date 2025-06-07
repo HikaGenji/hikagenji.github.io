@@ -3,102 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JFP Game Store</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .app-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .app-icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .app-icon:hover {
-            transform: scale(1.05);
-        }
-        .app-icon img {
-            width: 64px;
-            height: 64px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-        }
-        .app-name {
-            font-size: 14px;
-            color: #333;
-        }
-    </style>
+    <title>Hyperliquid Leaderboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>JFP Game Store</h1>
-    <div class="app-grid" id="appGrid"></div>
+    <div class="container">
+        <header class="header">
+            <h1>Hyperliquid Leaderboard</h1>
+            <div class="header-controls">
+                <div class="status-info">
+                    <span id="total-traders">Total Traders: -</span>
+                    <span id="last-updated">Last Updated: -</span>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn btn--secondary btn--sm" id="refresh-btn">
+                        <span>🔄</span> Refresh
+                    </button>
+                    <button class="btn btn--secondary btn--sm" id="columns-btn">
+                        <span>👁</span> Columns
+                    </button>
+                    <button class="btn btn--primary btn--sm" id="add-formula-btn">
+                        <span>➕</span> Add Formula
+                    </button>
+                    <button class="btn btn--outline btn--sm" id="export-btn">
+                        <span>📥</span> Export CSV
+                    </button>
+                </div>
+            </div>
+        </header>
 
-    <script>
-        const apps = [
-            { 
-                name: 'Jenga', 
-                icon: `data:image/svg+xml,${encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                        <rect x="20" y="70" width="60" height="10" fill="#8B4513"/>
-                        <rect x="20" y="55" width="60" height="10" fill="#A0522D"/>
-                        <rect x="25" y="40" width="50" height="10" fill="#8B4513"/>
-                        <rect x="20" y="25" width="60" height="10" fill="#A0522D"/>
-                        <rect x="25" y="10" width="50" height="10" fill="#8B4513"/>
-                    </svg>
-                `)}`, 
-                link: 'jenga.html' 
-            },
-            { 
-                name: 'Shkoba', 
-                icon: `data:image/svg+xml,${encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                        <rect x="20" y="20" width="60" height="80" rx="5" ry="5" fill="#fff" stroke="#000" stroke-width="2"/>
-                        <rect x="25" y="25" width="50" height="70" rx="3" ry="3" fill="#f8f8f8" stroke="#ddd" stroke-width="1"/>
-                        <text x="50" y="65" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#ff0000">7♥</text>
-                    </svg>
-                `)}`, 
-                link: 'shkoba.html' 
-            },
-            { name: 'App 3', icon: '/api/placeholder/64/64', link: 'app3.html' },
-            // Add more apps here
-        ];
+        <div class="search-section">
+            <div class="form-group">
+                <input type="text" id="global-search" class="form-control" placeholder="Search by address...">
+            </div>
+        </div>
 
-        function createAppIcon(app) {
-            const appIcon = document.createElement('div');
-            appIcon.className = 'app-icon';
-            appIcon.innerHTML = `
-                <img src="${app.icon}" alt="${app.name} icon">
-                <span class="app-name">${app.name}</span>
-            `;
-            appIcon.addEventListener('click', () => {
-                window.location.href = app.link;
-            });
-            return appIcon;
-        }
+        <div class="loading-container" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading leaderboard data...</p>
+        </div>
 
-        function populateAppGrid() {
-            const appGrid = document.getElementById('appGrid');
-            apps.forEach(app => {
-                appGrid.appendChild(createAppIcon(app));
-            });
-        }
+        <div class="error-container" id="error" style="display: none;">
+            <div class="error-message">
+                <h3>Failed to load data</h3>
+                <p id="error-text"></p>
+                <button class="btn btn--primary" onclick="fetchData()">Try Again</button>
+            </div>
+        </div>
 
-        populateAppGrid();
-    </script>
+        <div class="table-container" id="table-container" style="display: none;">
+            <div class="table-wrapper">
+                <table class="leaderboard-table" id="leaderboard-table">
+                    <thead>
+                        <tr id="table-header">
+                            <!-- Headers will be dynamically generated -->
+                        </tr>
+                        <tr id="filter-row">
+                            <!-- Filter inputs will be dynamically generated -->
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Data rows will be dynamically generated -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span id="pagination-info">Showing 1-25 of 0 entries</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn btn--outline btn--sm" id="prev-page" disabled>Previous</button>
+                    <span id="page-numbers"></span>
+                    <button class="btn btn--outline btn--sm" id="next-page" disabled>Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column Visibility Modal -->
+    <div class="modal-overlay" id="columns-modal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Column Visibility</h3>
+                <button class="modal-close" onclick="closeModal('columns-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="column-checkboxes">
+                    <!-- Column checkboxes will be dynamically generated -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" onclick="closeModal('columns-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formula Modal -->
+    <div class="modal-overlay" id="formula-modal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add Formula Column</h3>
+                <button class="modal-close" onclick="closeModal('formula-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="formula-name">Column Name</label>
+                    <input type="text" id="formula-name" class="form-control" placeholder="e.g. ROI Ratio">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="formula-expression">Formula Expression</label>
+                    <input type="text" id="formula-expression" class="form-control" placeholder="e.g. PnL_24h / Account_Value">
+                </div>
+                <div class="formula-help">
+                    <h4>Available Columns:</h4>
+                    <div id="available-columns">
+                        <!-- Available columns will be listed here -->
+                    </div>
+                    <h4>Supported Operations:</h4>
+                    <p>+, -, *, /, (, )</p>
+                    <h4>Examples:</h4>
+                    <ul>
+                        <li>PnL_24h / Account_Value</li>
+                        <li>ROI_7d * 100</li>
+                        <li>(PnL_30d + PnL_7d) / 2</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" onclick="closeModal('formula-modal')">Cancel</button>
+                <button class="btn btn--primary" onclick="addFormulaColumn()">Add Column</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>

@@ -1,1 +1,1 @@
-pyscript
+Vibe-coded enhanced hyperliquid leaderboard.
