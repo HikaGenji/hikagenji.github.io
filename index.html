@@ -11,128 +11,196 @@
         <header class="header">
             <h1>Hyperliquid Leaderboard</h1>
             <div class="header-controls">
-                <div class="status-info">
-                    <span id="total-traders">Total Traders: -</span>
-                    <span id="last-updated">Last Updated: -</span>
-                </div>
-                <div class="header-buttons">
-                    <button class="btn btn--secondary btn--sm" id="refresh-btn">
-                        <span>🔄</span> Refresh
-                    </button>
-                    <button class="btn btn--secondary btn--sm" id="columns-btn">
-                        <span>👁</span> Columns
-                    </button>
-                    <button class="btn btn--primary btn--sm" id="add-formula-btn">
-                        <span>➕</span> Add Formula
-                    </button>
-                    <button class="btn btn--outline btn--sm" id="export-btn">
-                        <span>📥</span> Export CSV
-                    </button>
-                </div>
+                <button class="btn btn--secondary btn--sm" id="refreshBtn">
+                    <span>↻</span> Refresh
+                </button>
+                <button class="btn btn--secondary btn--sm" id="exportBtn" disabled>
+                    <span>⬇</span> Export CSV
+                </button>
+                <button class="btn btn--primary btn--sm" id="addFormulaBtn">
+                    <span>+</span> Add Formula
+                </button>
             </div>
         </header>
 
-        <div class="search-section">
-            <div class="form-group">
-                <input type="text" id="global-search" class="form-control" placeholder="Search by address...">
+        <div class="filters-section" id="filtersSection" style="display: none;">
+            <div class="active-filters">
+                <h4>Active Filters:</h4>
+                <div class="filter-chips" id="filterChips"></div>
+                <button class="btn btn--outline btn--sm" id="clearAllFilters">Clear All</button>
             </div>
         </div>
 
-        <div class="loading-container" id="loading">
-            <div class="loading-spinner"></div>
-            <p>Loading leaderboard data...</p>
-        </div>
-
-        <div class="error-container" id="error" style="display: none;">
-            <div class="error-message">
-                <h3>Failed to load data</h3>
-                <p id="error-text"></p>
-                <button class="btn btn--primary" onclick="fetchData()">Try Again</button>
+        <div class="table-container">
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Loading Hyperliquid leaderboard data...</p>
             </div>
-        </div>
 
-        <div class="table-container" id="table-container" style="display: none;">
-            <div class="table-wrapper">
-                <table class="leaderboard-table" id="leaderboard-table">
+            <div class="error-state" id="errorState" style="display: none;">
+                <h3>Error Loading Data</h3>
+                <p id="errorMessage"></p>
+                <button class="btn btn--primary" id="retryBtn">Retry</button>
+            </div>
+
+            <div class="table-wrapper" id="tableWrapper" style="display: none;">
+                <table class="leaderboard-table" id="leaderboardTable">
                     <thead>
-                        <tr id="table-header">
-                            <!-- Headers will be dynamically generated -->
-                        </tr>
-                        <tr id="filter-row">
-                            <!-- Filter inputs will be dynamically generated -->
+                        <tr id="tableHeader">
+                            <th data-column="rank" class="sortable">
+                                <span>Rank</span>
+                            </th>
+                            <th data-column="displayName" class="sortable">
+                                <span>Name</span>
+                            </th>
+                            <th data-column="ethAddress" class="sortable">
+                                <span>Address</span>
+                            </th>
+                            <th data-column="accountValue" class="sortable filterable">
+                                <span>Account Value</span>
+                                <button class="filter-btn" data-column="accountValue">⚙</button>
+                            </th>
+                            <th data-column="pnl_24h" class="sortable filterable">
+                                <span>PNL 24h</span>
+                                <button class="filter-btn" data-column="pnl_24h">⚙</button>
+                            </th>
+                            <th data-column="pnl_7d" class="sortable filterable">
+                                <span>PNL 7d</span>
+                                <button class="filter-btn" data-column="pnl_7d">⚙</button>
+                            </th>
+                            <th data-column="pnl_30d" class="sortable filterable">
+                                <span>PNL 30d</span>
+                                <button class="filter-btn" data-column="pnl_30d">⚙</button>
+                            </th>
+                            <th data-column="pnl_alltime" class="sortable filterable">
+                                <span>PNL All Time</span>
+                                <button class="filter-btn" data-column="pnl_alltime">⚙</button>
+                            </th>
+                            <th data-column="roi_24h" class="sortable filterable">
+                                <span>ROI 24h</span>
+                                <button class="filter-btn" data-column="roi_24h">⚙</button>
+                            </th>
+                            <th data-column="roi_7d" class="sortable filterable">
+                                <span>ROI 7d</span>
+                                <button class="filter-btn" data-column="roi_7d">⚙</button>
+                            </th>
+                            <th data-column="roi_30d" class="sortable filterable">
+                                <span>ROI 30d</span>
+                                <button class="filter-btn" data-column="roi_30d">⚙</button>
+                            </th>
+                            <th data-column="roi_alltime" class="sortable filterable">
+                                <span>ROI All Time</span>
+                                <button class="filter-btn" data-column="roi_alltime">⚙</button>
+                            </th>
+                            <th data-column="volume_24h" class="sortable filterable">
+                                <span>Volume 24h</span>
+                                <button class="filter-btn" data-column="volume_24h">⚙</button>
+                            </th>
+                            <th data-column="volume_7d" class="sortable filterable">
+                                <span>Volume 7d</span>
+                                <button class="filter-btn" data-column="volume_7d">⚙</button>
+                            </th>
+                            <th data-column="volume_30d" class="sortable filterable">
+                                <span>Volume 30d</span>
+                                <button class="filter-btn" data-column="volume_30d">⚙</button>
+                            </th>
+                            <th data-column="volume_alltime" class="sortable filterable">
+                                <span>Volume All Time</span>
+                                <button class="filter-btn" data-column="volume_alltime">⚙</button>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="table-body">
-                        <!-- Data rows will be dynamically generated -->
+                    <tbody id="tableBody">
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <div class="pagination-container">
-                <div class="pagination-info">
-                    <span id="pagination-info">Showing 1-25 of 0 entries</span>
-                </div>
-                <div class="pagination-controls">
-                    <button class="btn btn--outline btn--sm" id="prev-page" disabled>Previous</button>
-                    <span id="page-numbers"></span>
-                    <button class="btn btn--outline btn--sm" id="next-page" disabled>Next</button>
-                </div>
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+            <div class="pagination-info">
+                <span id="paginationInfo">Showing 1-50 of 0 traders</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="btn btn--outline btn--sm" id="prevBtn" disabled>← Previous</button>
+                <span class="page-numbers" id="pageNumbers"></span>
+                <button class="btn btn--outline btn--sm" id="nextBtn" disabled>Next →</button>
             </div>
         </div>
     </div>
 
-    <!-- Column Visibility Modal -->
-    <div class="modal-overlay" id="columns-modal" style="display: none;">
+    <!-- Filter Modal -->
+    <div class="modal-backdrop" id="filterModal" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <h3>Column Visibility</h3>
-                <button class="modal-close" onclick="closeModal('columns-modal')">&times;</button>
+                <h3>Filter Column: <span id="filterColumnName"></span></h3>
+                <button class="modal-close" id="closeFilterModal">×</button>
             </div>
             <div class="modal-body">
-                <div id="column-checkboxes">
-                    <!-- Column checkboxes will be dynamically generated -->
+                <div class="form-group">
+                    <label class="form-label">Operator</label>
+                    <select class="form-control" id="filterOperator">
+                        <option value="=">=</option>
+                        <option value=">">></option>
+                        <option value=">=">>=</option>
+                        <option value="<"><</option>
+                        <option value="<="><=</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Value</label>
+                    <input type="number" class="form-control" id="filterValue" step="any" placeholder="Enter value">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn--secondary" onclick="closeModal('columns-modal')">Close</button>
+                <button class="btn btn--outline" id="cancelFilter">Cancel</button>
+                <button class="btn btn--primary" id="applyFilter">Apply Filter</button>
             </div>
         </div>
     </div>
 
-    <!-- Formula Modal -->
-    <div class="modal-overlay" id="formula-modal" style="display: none;">
-        <div class="modal">
+    <!-- Position Details Modal -->
+    <div class="modal-backdrop" id="positionModal" style="display: none;">
+        <div class="modal modal--large">
             <div class="modal-header">
-                <h3>Add Formula Column</h3>
-                <button class="modal-close" onclick="closeModal('formula-modal')">&times;</button>
+                <h3>Position Details</h3>
+                <button class="modal-close" id="closePositionModal">×</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label" for="formula-name">Column Name</label>
-                    <input type="text" id="formula-name" class="form-control" placeholder="e.g. ROI Ratio">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="formula-expression">Formula Expression</label>
-                    <input type="text" id="formula-expression" class="form-control" placeholder="e.g. PnL_24h / Account_Value">
-                </div>
-                <div class="formula-help">
-                    <h4>Available Columns:</h4>
-                    <div id="available-columns">
-                        <!-- Available columns will be listed here -->
+                <div id="positionDetails">
+                    <div class="position-summary">
+                        <h4>Trader Summary</h4>
+                        <div class="position-grid" id="positionGrid"></div>
                     </div>
-                    <h4>Supported Operations:</h4>
-                    <p>+, -, *, /, (, )</p>
-                    <h4>Examples:</h4>
-                    <ul>
-                        <li>PnL_24h / Account_Value</li>
-                        <li>ROI_7d * 100</li>
-                        <li>(PnL_30d + PnL_7d) / 2</li>
-                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formula Builder Modal -->
+    <div class="modal-backdrop" id="formulaModal" style="display: none;">
+        <div class="modal modal--large">
+            <div class="modal-header">
+                <h3>Add Custom Formula Column</h3>
+                <button class="modal-close" id="closeFormulaModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Column Name</label>
+                    <input type="text" class="form-control" id="formulaName" placeholder="e.g., Profit Ratio">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Formula</label>
+                    <input type="text" class="form-control" id="formulaExpression" placeholder="e.g., pnl_alltime / accountValue">
+                    <small class="form-help">Use column names and operators: +, -, *, /</small>
+                </div>
+                <div class="available-columns">
+                    <h5>Available Columns:</h5>
+                    <div class="column-tags" id="availableColumns"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn--secondary" onclick="closeModal('formula-modal')">Cancel</button>
-                <button class="btn btn--primary" onclick="addFormulaColumn()">Add Column</button>
+                <button class="btn btn--outline" id="cancelFormula">Cancel</button>
+                <button class="btn btn--primary" id="addFormula">Add Column</button>
             </div>
         </div>
     </div>
